@@ -1,6 +1,6 @@
 const { writeFile, remove, mkdir, writeFileSync } = Deno;
 import watch from "../mod.ts";
-import { assertEquals } from "https://deno.land/std/testing@v0.2.5/asserts.ts";
+import { assertEquals } from "https://deno.land/std/testing/asserts.ts";
 import {
   inTmpDir,
   genFile,
@@ -8,7 +8,7 @@ import {
   genLink,
   tree,
   inTmpDirs
-} from "random-files.ts";
+} from "./random-files.ts";
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

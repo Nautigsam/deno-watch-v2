@@ -5,10 +5,11 @@ const {
   lstat,
   readDirSync,
   readlinkSync,
-  FileInfo,
   DenoError,
   ErrorKind
 } = Deno;
+
+type FileInfo = Deno.FileInfo
 
 /** The result of checking in one loop */
 export class Changes {
@@ -233,11 +234,11 @@ async function walk(
         path = f;
         info = await (followSymlink ? statTraverse : lstat)(f);
       } else if (f.isSymlink() && followSymlink) {
-        linkPath = f.path;
-        info = await statTraverse(f.path);
+        linkPath = f.name;
+        info = await statTraverse(f.name);
         path = info.path;
       } else {
-        path = f.path;
+        path = f.name;
         info = f;
       }
     } catch (e) {
@@ -287,11 +288,11 @@ function collect(
         path = f;
         info = (followSymlink ? statTraverseSync : lstatSync)(f);
       } else if (f.isSymlink() && followSymlink) {
-        linkPath = f.path;
-        path = readlinkSync(f.path);
+        linkPath = f.name;
+        path = readlinkSync(f.name);
         info = statTraverseSync(path);
       } else {
-        path = f.path;
+        path = f.name;
         info = f;
       }
     } catch (e) {
@@ -322,7 +323,7 @@ async function statTraverse(path: string): Promise<FileInfo> {
     const targetPath = await readlink(path);
     return statTraverse(targetPath);
   } else {
-    info.path = info.path || path;
+    info.name = info.name || path;
     return info;
   }
 }
@@ -332,7 +333,7 @@ function statTraverseSync(path: string): FileInfo {
     const targetPath = readlinkSync(path);
     return statTraverseSync(targetPath);
   } else {
-    info.path = info.path || path;
+    info.name = info.name || path;
     return info;
   }
 }
