@@ -1,15 +1,14 @@
-import {
+const {
   makeTempDirSync,
   writeFileSync,
   removeSync,
   symlinkSync,
   mkdirSync,
-  removeAllSync,
   run,
   DenoError,
   ErrorKind
-} from "deno";
-import * as path from "https://deno.land/x/fs/path.ts"; // fix later
+} = Deno;
+import * as path from "https://deno.land/std/path/mod.ts";
 
 export function genName(pre = "", post = ""): string {
   return pre + Math.floor(Math.random() * 100000) + post;
@@ -39,7 +38,7 @@ export async function inTmpDirs(
   function cleanup() {
     tmpDirs.forEach(d => {
       try {
-        removeAllSync(d);
+        removeSync(d);
       } catch (e) {
         if (e instanceof DenoError && e.kind === ErrorKind.NotFound) {
           // not a problem
@@ -66,7 +65,7 @@ class F {
   }
   remove() {
     if (this.isDir) {
-      removeAllSync(this.path);
+      removeSync(this.path);
     } else {
       removeSync(this.path);
     }

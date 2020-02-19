@@ -1,6 +1,6 @@
-import { writeFile, remove, mkdir, writeFileSync, platform } from "deno";
+const { writeFile, remove, mkdir, writeFileSync } = Deno;
 import watch from "../mod.ts";
-import { test, assertEqual } from "https://deno.land/x/testing@v0.2.5/mod.ts";
+import { assertEquals } from "https://deno.land/std/testing@v0.2.5/asserts.ts";
 import {
   inTmpDir,
   genFile,
@@ -15,16 +15,16 @@ function delay(ms) {
 }
 function assertChanges(changes, a, m, d) {
   try {
-    assertEqual(changes.added.length, a);
-    assertEqual(changes.modified.length, m);
-    assertEqual(changes.deleted.length, d);
+    assertEquals(changes.added.length, a);
+    assertEquals(changes.modified.length, m);
+    assertEquals(changes.deleted.length, d);
   } catch (e) {
     console.log("expected:", `${a} ${m} ${d}`);
     console.log("actual:", changes);
     throw e;
   }
 }
-test(async function Watch() {
+Deno.test(async function Watch() {
   await inTmpDir(async tmpDir => {
     let changes = { added: [], modified: [], deleted: [] };
     const end = watch(tmpDir).start(changes_ => {
@@ -54,7 +54,7 @@ test(async function Watch() {
     }
   });
 });
-test(async function singleFile() {
+Deno.test(async function singleFile() {
   await inTmpDir(async tmpDir => {
     const f = genFile(tmpDir);
     let changes = { added: [], modified: [], deleted: [] };
@@ -78,8 +78,8 @@ test(async function singleFile() {
   });
 });
 
-if (platform.os !== "win") {
-  test(async function Symlink() {
+if (Deno.env().OS !== "Windows_NT") {
+  Deno.test(async function Symlink() {
     await inTmpDirs(2, async ([tmpDir, anotherDir]) => {
       let changes = { added: [], modified: [], deleted: [] };
       const end = watch(tmpDir, {
@@ -129,7 +129,7 @@ if (platform.os !== "win") {
   });
 }
 
-test(async function dotFiles() {
+Deno.test(async function dotFiles() {
   await inTmpDir(async tmpDir => {
     let changes = { added: [], modified: [], deleted: [] };
     const end = watch(tmpDir).start(changes_ => {
@@ -139,7 +139,7 @@ test(async function dotFiles() {
       const f = genFile(tmpDir, { prefix: "." });
       await delay(1200);
       assertChanges(changes, 0, 0, 0);
-      if (platform.os !== "win") {
+      if (Deno.env().OS !== "Windows_NT") {
         const link = genLink(tmpDir, f.path);
         await delay(1200);
         assertChanges(changes, 0, 0, 0);
@@ -157,7 +157,7 @@ test(async function dotFiles() {
   });
 });
 
-test(async function filter() {
+Deno.test(async function filter() {
   await inTmpDir(async tmpDir => {
     let result1 = [];
     const end1 = watch(tmpDir).start(changes => {
@@ -182,10 +182,10 @@ test(async function filter() {
       genFile(tmpDir, { postfix: ".js" });
       genFile(tmpDir, { postfix: ".css" });
       await delay(1200);
-      assertEqual(result1.length, 3);
-      assertEqual(result2.length, 1);
-      assertEqual(result3.length, 2);
-      assertEqual(result4.length, 1);
+      assertEquals(result1.length, 3);
+      assertEquals(result2.length, 1);
+      assertEquals(result3.length, 2);
+      assertEquals(result4.length, 1);
     } finally {
       end1();
       end2();
@@ -195,7 +195,7 @@ test(async function filter() {
   });
 });
 
-test(async function WatchByGenerator() {
+Deno.test(async function WatchByGenerator() {
   await inTmpDir(async tmpDir => {
     setTimeout(async () => {
       const f = genFile(tmpDir);
@@ -207,8 +207,8 @@ test(async function WatchByGenerator() {
   });
 });
 
-if (platform.os !== "win") {
-  test(async function Benchmark() {
+if (Deno.env().OS !== "Windows_NT") {
+  Deno.test(async function Benchmark() {
     await inTmpDir(async tmpDir => {
       const files = [];
       generateManyFiles(tmpDir, files);
