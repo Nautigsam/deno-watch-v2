@@ -8,7 +8,7 @@ const {
   DenoError,
   ErrorKind
 } = Deno;
-import * as path from "https://deno.land/std/path/mod.ts";
+import * as path from "https://deno.land/std@v0.34.0/path/mod.ts";
 
 export function genName(pre = "", post = ""): string {
   return pre + Math.floor(Math.random() * 100000) + post;
@@ -116,9 +116,9 @@ export function genLink(
   symlinkSync(pathToFile, linkPath);
   return new F(linkPath, options.isDir);
 }
-export async function tree(...args: string[]): Promise<void> {
+export async function tree(path: string): Promise<void> {
   const process = run({
-    args: ["tree", ...args],
+    args: Deno.build.os === "win" ? ["tree", path]: ["ls", "-R", path],
     stdout: "inherit"
   });
   await process.status();

@@ -1,6 +1,6 @@
 const { writeFile, remove, mkdir, writeFileSync } = Deno;
 import watch from "../mod.ts";
-import { assertEquals } from "https://deno.land/std/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@v0.34.0/testing/asserts.ts";
 import {
   inTmpDir,
   genFile,
@@ -83,8 +83,7 @@ Deno.test(async function singleFile() {
     }
   });
 });
-
-if (Deno.env().OS !== "Windows_NT") {
+if (Deno.build.os !== "win") {
   Deno.test(async function Symlink() {
     await inTmpDirs(2, async ([tmpDir, anotherDir]) => {
       let changes: Changes = { added: [], modified: [], deleted: [] };
@@ -145,7 +144,7 @@ Deno.test(async function dotFiles() {
       const f = genFile(tmpDir, { prefix: "." });
       await delay(1200);
       assertChanges(changes, 0, 0, 0);
-      if (Deno.env().OS !== "Windows_NT") {
+      if (Deno.build.os !== "win") {
         const link = genLink(tmpDir, f.path);
         await delay(1200);
         assertChanges(changes, 0, 0, 0);
@@ -213,7 +212,7 @@ Deno.test(async function WatchByGenerator() {
   });
 });
 
-if (Deno.env().OS !== "Windows_NT") {
+if (Deno.build.os !== "win") {
   Deno.test(async function Benchmark() {
     await inTmpDir(async tmpDir => {
       const files: Array<any> = [];
