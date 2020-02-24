@@ -20,9 +20,9 @@ export class Changes {
   /** Paths of deleted files */
   deleted: string[] = [];
   /** The time[posix ms] when the checking started. */
-  startTime: number;
+  startTime: number = 0;
   /** The time[posix ms] when the checking ended. */
-  endTime: number;
+  endTime: number = 0;
   /** Current file count */
   fileCount = 0;
   /** added + modified + deleted */
@@ -119,7 +119,7 @@ export function watch(targets: string | string[], options?: Options): Watcher {
       return async () => {
         state.abort = true;
         if (state.timeout) {
-          clearTimeout(state.timeout);
+          clearTimeout(undefined);
         } else {
           await loop;
         }
@@ -131,21 +131,22 @@ export default watch;
 
 async function* run(
   targets: string[],
-  options: Options,
+  options?: Options,
   state = {
     abort: false,
     timeout: null
   }
 ) {
-  const detector = new Detector(targets, options);
+  const detector = new Detector(targets, options || {});
   const { startTime } = detector.init();
   let lastStartTime = startTime;
   while (!state.abort) {
-    let waitTime = Math.max(0, options.interval - (Date.now() - lastStartTime));
+    let waitTime = 1000;
+    if (options && options.interval)
+      waitTime = Math.max(0, options.interval - (Date.now() - lastStartTime));
     await new Promise(resolve => {
-      state.timeout = setTimeout(resolve, waitTime);
+      setTimeout(resolve, waitTime);
     });
-    state.timeout = null;
     lastStartTime = Date.now();
     const changes = await detector.detectChanges();
     lastStartTime = changes.startTime;
@@ -166,7 +167,7 @@ export class Detector {
     const filter = makeFilter(this.options);
     const changes = new Changes();
     changes.startTime = Date.now();
-    collect(this.files, this.targets, this.options.followSymlink, filter);
+    collect(this.files, this.targets, this.options.followSymlink || false, filter);
     changes.fileCount = Object.keys(this.files).length;
     changes.endTime = Date.now();
     return changes;
@@ -181,7 +182,7 @@ export class Detector {
       this.files,
       newFiles,
       this.targets,
-      this.options.followSymlink,
+      this.options.followSymlink || false,
       filter,
       changes
     );
@@ -205,12 +206,13 @@ function makeFilter({ test, ignore, ignoreDotFiles }: Options) {
       }
     }
     if (f.isFile()) {
-      if (!testRegex.test(path)) {
-        return false;
-      }
-      if (ignoreRegex.test(path)) {
-        return false;
-      }
+      if (testRegex)
+        if (!testRegex.test(path))
+          return false;
+      
+      if (ignoreRegex)
+        if (ignoreRegex.test(path))
+          return false;
     }
     return true;
   };
@@ -235,8 +237,8 @@ async function walk(
         info = await (followSymlink ? statTraverse : lstat)(f);
       } else if (f.isSymlink() && followSymlink) {
         linkPath = f.name;
-        info = await statTraverse(f.name);
-        path = info.path;
+        info = await statTraverse(f.name || '');
+        path = info.name;
       } else {
         path = f.name;
         info = f;
@@ -277,7 +279,7 @@ function collect(
   all: any,
   targets: (string | FileInfo)[],
   followSymlink: boolean,
-  filter: (f: FileInfo, path?: string) => boolean
+  filter: (f: FileInfo, path: string) => boolean
 ): void {
   for (let f of targets) {
     let linkPath;
@@ -289,7 +291,7 @@ function collect(
         info = (followSymlink ? statTraverseSync : lstatSync)(f);
       } else if (f.isSymlink() && followSymlink) {
         linkPath = f.name;
-        path = readlinkSync(f.name);
+        path = readlinkSync(f.name || '');
         info = statTraverseSync(path);
       } else {
         path = f.name;

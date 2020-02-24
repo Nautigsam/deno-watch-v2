@@ -10,10 +10,18 @@ import {
   inTmpDirs
 } from "./random-files.ts";
 
-function delay(ms) {
+interface Changes {
+  added: Array<any>
+  modified: Array<any>
+  deleted: Array<any>
+}
+
+function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-function assertChanges(changes, a, m, d) {
+function assertChanges(changes: Changes, a: number, m: number, d: number) {
+  console.log('changes to adjust the any in array:')
+  console.log(changes)
   try {
     assertEquals(changes.added.length, a);
     assertEquals(changes.modified.length, m);
@@ -26,7 +34,7 @@ function assertChanges(changes, a, m, d) {
 }
 Deno.test(async function Watch() {
   await inTmpDir(async tmpDir => {
-    let changes = { added: [], modified: [], deleted: [] };
+    let changes: Changes = { added: [], modified: [], deleted: [] };
     const end = watch(tmpDir).start(changes_ => {
       changes = changes_;
     });
@@ -57,7 +65,7 @@ Deno.test(async function Watch() {
 Deno.test(async function singleFile() {
   await inTmpDir(async tmpDir => {
     const f = genFile(tmpDir);
-    let changes = { added: [], modified: [], deleted: [] };
+    let changes: Changes = { added: [], modified: [], deleted: [] };
     const end = watch(f.path).start(changes_ => {
       changes = changes_;
     });
@@ -81,7 +89,7 @@ Deno.test(async function singleFile() {
 if (Deno.env().OS !== "Windows_NT") {
   Deno.test(async function Symlink() {
     await inTmpDirs(2, async ([tmpDir, anotherDir]) => {
-      let changes = { added: [], modified: [], deleted: [] };
+      let changes: Changes = { added: [], modified: [], deleted: [] };
       const end = watch(tmpDir, {
         followSymlink: true
       }).start(changes_ => {
@@ -131,7 +139,7 @@ if (Deno.env().OS !== "Windows_NT") {
 
 Deno.test(async function dotFiles() {
   await inTmpDir(async tmpDir => {
-    let changes = { added: [], modified: [], deleted: [] };
+    let changes: Changes = { added: [], modified: [], deleted: [] };
     const end = watch(tmpDir).start(changes_ => {
       changes = changes_;
     });
@@ -159,19 +167,19 @@ Deno.test(async function dotFiles() {
 
 Deno.test(async function filter() {
   await inTmpDir(async tmpDir => {
-    let result1 = [];
+    let result1: string[] = [];
     const end1 = watch(tmpDir).start(changes => {
       result1 = result1.concat(changes.added);
     });
-    let result2 = [];
+    let result2: string[] = [];
     const end2 = watch(tmpDir, { test: ".ts$" }).start(changes => {
       result2 = result2.concat(changes.added);
     });
-    let result3 = [];
+    let result3: string[] = [];
     const end3 = watch(tmpDir, { ignore: ".ts$" }).start(changes => {
       result3 = result3.concat(changes.added);
     });
-    let result4 = [];
+    let result4: string[] = [];
     const end4 = watch(tmpDir, { test: ".(ts|css)$", ignore: ".css$" }).start(
       changes => {
         result4 = result4.concat(changes.added);
@@ -210,7 +218,7 @@ Deno.test(async function WatchByGenerator() {
 if (Deno.env().OS !== "Windows_NT") {
   Deno.test(async function Benchmark() {
     await inTmpDir(async tmpDir => {
-      const files = [];
+      const files: Array<any> = [];
       generateManyFiles(tmpDir, files);
       console.log(`generated ${files.length} files.`);
       const end = watch(tmpDir).start(result => {
@@ -222,11 +230,13 @@ if (Deno.env().OS !== "Windows_NT") {
         console.log("[Add]");
         for (let i = 0; i < 4000; i++) {
           await delay(1);
-          let fileName = files[Math.floor(Math.random() * files.length)];
+          let fileName: string = files[Math.floor(Math.random() * files.length)];
           fileName = fileName + "-" + i;
           await writeFile(fileName, new Uint8Array(0));
           files.push(fileName);
         }
+        console.log('files to adjust any in array type:')
+        console.log(files)
         console.log("[Modify]");
         for (let i = 0; i < 4000; i++) {
           await delay(1);
@@ -255,7 +265,7 @@ if (Deno.env().OS !== "Windows_NT") {
 const DEPTH = 7;
 const FILE_PER_DIR = 10;
 const DIR_PER_DIR = 3;
-function generateManyFiles(dir, files, depth = DEPTH) {
+function generateManyFiles(dir: string, files: string[], depth = DEPTH) {
   if (depth <= 0) {
     return;
   }

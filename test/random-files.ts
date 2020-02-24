@@ -31,7 +31,7 @@ export async function inTmpDirs(
   f: (dirs: string[]) => Promise<void> | void,
   keepOnFailure = false
 ) {
-  const tmpDirs = [];
+  const tmpDirs: string[] = [];
   for (let i = 0; i < count; i++) {
     tmpDirs.push(makeTempDirSync());
   }
@@ -59,7 +59,7 @@ export async function inTmpDirs(
   }
 }
 class F {
-  constructor(public path: string, public isDir: boolean) {}
+  constructor(public path: string, public isDir: boolean|undefined) {}
   modify() {
     writeFileSync(this.path, new Uint8Array(0));
   }
@@ -84,7 +84,7 @@ const defaultOptions = {
   isDir: false
 };
 export function genFiles(dir: string, options: Options = {}): F[] {
-  const amount = Math.max(options.amount, 1);
+  const amount = Math.max(options.amount || 0, 1);
   options = { ...defaultOptions, ...options };
   const files = [];
   for (let i = 0; i < amount; i++) {
