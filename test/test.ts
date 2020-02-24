@@ -20,8 +20,6 @@ function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 function assertChanges(changes: Changes, a: number, m: number, d: number) {
-  console.log('changes to adjust the any in array:')
-  console.log(changes)
   try {
     assertEquals(changes.added.length, a);
     assertEquals(changes.modified.length, m);
@@ -235,8 +233,6 @@ if (Deno.env().OS !== "Windows_NT") {
           await writeFile(fileName, new Uint8Array(0));
           files.push(fileName);
         }
-        console.log('files to adjust any in array type:')
-        console.log(files)
         console.log("[Modify]");
         for (let i = 0; i < 4000; i++) {
           await delay(1);
